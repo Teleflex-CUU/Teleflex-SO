@@ -305,11 +305,12 @@ input[type=file]{display:none}
   <span class="sdot" id="sdot">● Sheets</span>
   <div class="tabs">
     <button class="tb on" id="tb-enf" onclick="go('enf')">🩺 Enfermería</button>
-    <button class="tb" onclick="go('citas')">📅 Citas <span class="bc" id="bc-ci">0</span></button>
+    <button class="tb" id="tb-citas" onclick="go('citas')">📅 Citas <span class="bc" id="bc-ci">0</span></button>
     <button class="tb" id="tb-vm" onclick="go('vm')">👨‍⚕️ Val. Médica</button>
     <button class="tb" id="tb-dash" onclick="go('dash')">📊 Dashboard</button>
     <button class="tb" id="tb-reg" onclick="go('reg')">📋 Registros <span class="bc" id="bc-re">0</span></button>
     <button class="tb" id="tb-hc" onclick="go('hc')">👥 HC <span class="bc" id="bc-hc">0</span></button>
+    <button class="tb" id="tb-exp" onclick="go('exp')">🗂️ Expediente</button>
     <button class="tb" id="tb-nut" onclick="go('nut')">🥗 Nutriología <span class="bc" id="bc-nut">0</span></button>
   </div>
 </div>
@@ -335,7 +336,7 @@ input[type=file]{display:none}
         <div style="font-size:26px;margin-bottom:5px">⚠️</div>
         <div style="font-weight:700;font-size:13px">Sin head count cargado</div>
         <div style="font-size:11px;color:var(--tx2);margin:4px 0 10px">Carga el listado de empleados primero</div>
-        <button class="btn bam sm" id="tb-hc" onclick="go('hc')">👥 Head Count</button>
+        <button class="btn bam sm" onclick="go('hc')">👥 Head Count</button>
       </div>
       <div class="ec ec-int" id="emp-card">
         <div class="ecn" id="ec-nombre">— <span class="ect">INTERNO</span></div>
@@ -487,6 +488,22 @@ input[type=file]{display:none}
       <option value="">Todos los estados</option><option value="Pendiente">Pendientes</option>
       <option value="Confirmada">Confirmadas</option><option value="Atendida">Atendidas</option>
       <option value="Cancelada">Canceladas</option></select>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <select id="fil-planta" onchange="renderCitas()" style="padding:6px 10px;border:1.5px solid var(--bor);border-radius:7px;font-size:12px;outline:none">
+      <option value="">🏭 Todas las plantas</option>
+      <option value="Américas">Américas</option>
+      <option value="Barrancas">Barrancas</option>
+      <option value="Cantera">Cantera</option>
+      <option value="Juventud">Juventud</option>
+    </select>
+    <select id="fil-estado" onchange="renderCitas()" style="padding:6px 10px;border:1.5px solid var(--bor);border-radius:7px;font-size:12px;outline:none">
+      <option value="">📋 Todos los estados</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Confirmada">Confirmada</option>
+      <option value="Atendida">Atendida</option>
+      <option value="Cancelada">Cancelada</option>
+    </select>
   </div>
   <div id="citas-list"><p style="text-align:center;padding:32px;color:var(--tx3)">Sin citas</p></div>
 </div>
@@ -878,6 +895,43 @@ input[type=file]{display:none}
   </div>
 </div>
 
+
+<!-- ══ EXPEDIENTE ══ -->
+<div class="sc" id="sc-exp">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:16px;font-weight:700;color:var(--navy)">🗂️ Expediente del Empleado</div>
+      <div style="font-size:11px;color:var(--tx2)">Historial completo de consultas, valoraciones y nutrición</div>
+    </div>
+  </div>
+  <!-- Buscador -->
+  <div style="background:var(--surf2);border-radius:12px;padding:14px 16px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Buscar empleado</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="exp-q" placeholder="No. empleado o nombre..."
+        style="flex:1;min-width:200px;padding:10px 12px;border:1.5px solid var(--bor);border-radius:8px;font-size:14px;outline:none"
+        oninput="buscarExpediente(this.value)" onkeydown="if(event.key==='Enter')buscarExpediente(this.value)">
+      <button class="btn bg" onclick="buscarExpediente(document.getElementById('exp-q').value)" style="padding:10px 18px">🔍 Buscar</button>
+    </div>
+    <!-- Resultados de búsqueda -->
+    <div id="exp-resultados" style="margin-top:10px"></div>
+  </div>
+  <!-- Expediente del empleado seleccionado -->
+  <div id="exp-contenido" style="display:none">
+    <!-- Card empleado -->
+    <div id="exp-emp-card" class="ec ec-int show" style="margin-bottom:14px"></div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap" id="exp-tabs">
+      <button class="mpill active" onclick="expTab('enf',this)">🩺 Enfermería</button>
+      <button class="mpill" onclick="expTab('vm',this)">👨‍⚕️ Val. Médica</button>
+      <button class="mpill" onclick="expTab('nut',this)">🥗 Nutriología</button>
+      <button class="mpill" onclick="expTab('resumen',this)">📋 Resumen</button>
+    </div>
+    <!-- Contenido del tab -->
+    <div id="exp-tab-content"></div>
+  </div>
+</div>
+
 <!-- ══ MODAL NUTRIOLOGÍA ══ -->
 <div class="ov" id="ov-nut">
   <div class="modal" style="max-width:780px">
@@ -1242,7 +1296,7 @@ input[type=file]{display:none}
 <div class="toast" id="toast"></div>
 <!-- Bottom nav for mobile/iPad -->
 <nav id="bottom-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--navy);z-index:199;padding:6px 4px calc(6px + env(safe-area-inset-bottom));flex-direction:row;justify-content:space-around;align-items:center;border-top:1px solid rgba(255,255,255,.15)">
-  <button id="tb-enf" onclick="go('enf')" id="bn-enf" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
+  <button onclick="go('enf')" id="bn-enf" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
     <span style="font-size:18px">🩺</span>Enfermería
   </button>
   <button onclick="go('citas')" id="bn-citas" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
@@ -1251,16 +1305,16 @@ input[type=file]{display:none}
   <button onclick="go('vm')" id="bn-vm" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
     <span style="font-size:18px">👨‍⚕️</span>Val. Méd.
   </button>
-  <button id="tb-dash" onclick="go('dash')" id="bn-dash" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
+  <button onclick="go('dash')" id="bn-dash" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
     <span style="font-size:18px">📊</span>Dashboard
   </button>
-  <button id="tb-reg" onclick="go('reg')" id="bn-reg" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
+  <button onclick="go('reg')" id="bn-reg" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
     <span style="font-size:18px">📋</span>Registros
   </button>
-  <button id="tb-hc" onclick="go('hc')" id="bn-hc" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
+  <button onclick="go('hc')" id="bn-hc" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
     <span style="font-size:18px">👥</span>HC
   </button>
-  <button id="tb-nut" onclick="go('nut')" id="bn-nut" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
+  <button onclick="go('nut')" id="bn-nut" style="background:none;border:none;color:rgba(255,255,255,.6);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:52px">
     <span style="font-size:18px">🥗</span>Nutrición
   </button>
 </nav>
@@ -1332,7 +1386,7 @@ function init(){
   ].forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});
   HC=ld(SK_HC);RE=ld(SK_RE);CI=ld(SK_CI);VM=ld(SK_VM);NUT=ld(SK_NUT);
   updateBadges();updateStats();
-  if(HC.length){showHCT();document.getElementById('btn-del-hc').style.display='';}
+  if(HC.length){showHCT();var bd=document.getElementById('btn-del-hc');if(bd)bd.style.display='';}
   buildAP();
   gPost({action:'init'}).catch(()=>{});
   // Auto-download HC from Sheets if empty on this device
@@ -1344,18 +1398,20 @@ function init(){
 function go(id){
   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('sc-'+id).classList.add('on');
-  const idx={enf:0,citas:1,vm:2,dash:3,reg:4,hc:5,nut:6}[id];
-  document.querySelectorAll('.tb')[idx].classList.add('on');
-  // Update bottom nav
-  ['enf','citas','vm','dash','reg','hc','nut'].forEach(k=>{
-    const btn=document.getElementById('bn-'+k);
-    if(btn) btn.style.color=k===id?'#fff':'rgba(255,255,255,.6)';
+  var sc=document.getElementById('sc-'+id);
+  if(sc) sc.classList.add('on'); else{console.warn('go: no sc-'+id);return;}
+  // Activate nav button by ID (safe — no positional indexing)
+  var tbId=document.getElementById('tb-'+id);
+  if(tbId) tbId.classList.add('on');
+  // Update bottom nav colors
+  ['enf','cit','citas','vm','dash','reg','hc','nut'].forEach(k=>{
+    var btn=document.getElementById('bn-'+k)||document.getElementById('bn-'+k+'s');
+    if(btn) btn.style.color=(k===id||k+'s'===id||k===id+'s')?'#fff':'rgba(255,255,255,.6)';
   });
   if(id==='reg'){buildMesFil();renderRegs('','');}
-  if(id==='citas') renderCitas();
-  if(id==='vm') renderVMLista();
-  if(id==='hc'&&HC.length) renderHC('');
+  if(id==='citas'||id==='cit') renderCitas();
+  if(id==='vm'){renderVMLista();}
+  if(id==='hc'){if(HC.length) renderHC('');}
   if(id==='dash') renderDash();
   if(id==='nut') renderNutLista();
 }
@@ -1619,8 +1675,8 @@ async function guardarCita(){
 }
 
 function renderCitas(){
-  const fp=document.getElementById('fil-planta').value;
-  const fe=document.getElementById('fil-estado').value;
+  const fp=(document.getElementById('fil-planta')||{}).value||'';
+  const fe=(document.getElementById('fil-estado')||{}).value||'';
   let lista=citas;
   if(fp) lista=lista.filter(c=>c.planta===fp||c.planta===fp.replace('Americas','Américas'));
   if(fe) lista=lista.filter(c=>c.estado===fe);
@@ -2306,7 +2362,11 @@ async function confirmarMap(){
   catch(e){toast('✅ '+headcount.length+' empleados (sin conexión a Sheets)','twn');}
 }
 
-function showHCT(){document.getElementById('hc-upload-zone').style.display='none';document.getElementById('hc-table-zone').style.display='block';renderHC('')}
+function showHCT(){
+  var uz=document.getElementById('hc-upload-zone'); if(uz) uz.style.display='none';
+  var tz=document.getElementById('hc-table-zone'); if(tz) tz.style.display='block';
+  renderHC('');
+}
 function showHCE(){document.getElementById('hc-upload-zone').style.display='block';document.getElementById('hc-table-zone').style.display='none'}
 
 function renderHC(q){
@@ -2795,9 +2855,9 @@ var currentUser = null;
 // Roles y sus módulos permitidos
 var ROLES = {
   enfermeria: {label:'Enfermería',    color:'#1565C0', icon:'🩺',  modulos:['enf','cit','reg']},
-  medico:     {label:'Médico',        color:'#2E7D32', icon:'👨‍⚕️', modulos:['enf','cit','vm','reg','dash']},
-  nutricion:  {label:'Nutriología',   color:'#6A1B9A', icon:'🥗',  modulos:['nut','hc']},
-  admin:      {label:'Administrador', color:'#B71C1C', icon:'⚙️',  modulos:['enf','cit','vm','reg','dash','hc','nut','usuarios']}
+  medico:     {label:'Médico',        color:'#2E7D32', icon:'👨‍⚕️', modulos:['enf','cit','citas','vm','reg','dash','exp']},
+  nutricion:  {label:'Nutriología',   color:'#6A1B9A', icon:'🥗',  modulos:['nut','hc','exp']},
+  admin:      {label:'Administrador', color:'#B71C1C', icon:'⚙️',  modulos:['enf','cit','citas','vm','reg','dash','hc','nut','exp','usuarios']}
 };
 
 // Mapeo módulo → botón del nav
@@ -2855,7 +2915,7 @@ function aplicarPermisos(){
   if(!currentUser) return;
   var modulos = ROLES[currentUser.rol].modulos;
   // Ocultar botones de nav que no tiene permiso
-  var todos = ['tb-enf','tb-cit','tb-vm','tb-reg','tb-dash','tb-hc','tb-nut'];
+  var todos = ['tb-enf','tb-cit','tb-citas','tb-vm','tb-reg','tb-dash','tb-hc','tb-nut','tb-exp'];
   todos.forEach(function(btnId){
     var btn = document.getElementById(btnId);
     if(!btn) return;
@@ -3067,6 +3127,181 @@ function guardarPlantasEmp(){
   closeModal('modal-plantas-emp');
   renderHC && renderHC();
 }
+
+// ══════════════════════════════════════════════════════════════
+// EXPEDIENTE
+// ══════════════════════════════════════════════════════════════
+var _expEmp = null;
+var _expTab = 'enf';
+
+
+function expVerVM(btn){
+  var folio = btn.getAttribute('data-folio');
+  if(folio) verDetalleVM(folio);
+}
+function buscarExpediente(q){
+  q = (q||'').trim().toLowerCase();
+  var res = document.getElementById('exp-resultados');
+  var cont = document.getElementById('exp-contenido');
+  if(!q){res.innerHTML='';cont.style.display='none';return;}
+  // Search in HC + registros + valMedicas for matching employees
+  var found = {};
+  var addEmp = function(noEmp, nombre, planta, turno, depto){
+    if(!noEmp) return;
+    var k = String(noEmp).toLowerCase();
+    if(!found[k]) found[k] = {noEmp:noEmp, nombre:nombre||'—', planta:planta||'—', turno:turno||'—', depto:depto||'—'};
+  };
+  HC.forEach(function(e){ if(String(e.noEmp||'').toLowerCase().includes(q)||String(e.nombre||'').toLowerCase().includes(q)) addEmp(e.noEmp,e.nombre,e.planta,e.turno,e.depto); });
+  registros.forEach(function(r){ if(String(r.noEmp||'').toLowerCase().includes(q)||String(r.nombre||'').toLowerCase().includes(q)) addEmp(r.noEmp,r.nombre,r.planta,r.turno,r.depto); });
+  valMedicas.forEach(function(r){ if(String(r.noEmp||'').toLowerCase().includes(q)||String(r.nombre||'').toLowerCase().includes(q)) addEmp(r.noEmp,r.nombre,r.planta,r.turno,r.depto); });
+  NUT.forEach(function(r){ if(String(r.noEmp||'').toLowerCase().includes(q)||String(r.nombre||'').toLowerCase().includes(q)) addEmp(r.noEmp,r.nombre,r.planta,r.turno,''); });
+  var keys = Object.keys(found);
+  if(!keys.length){ res.innerHTML='<div style="color:var(--tx2);font-size:12px;padding:8px">Sin resultados para "'+q+'"</div>'; cont.style.display='none'; return; }
+  res.innerHTML = '';
+  keys.slice(0,10).forEach(function(k){
+    var e=found[k];
+    var d=document.createElement('div');
+    d.style.cssText='cursor:pointer;padding:10px 12px;border:1px solid var(--bor);border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;background:var(--surf);transition:.15s';
+    d.innerHTML='<div><div style="font-weight:700;font-size:13px">'+e.nombre+'</div>'
+      +'<div style="font-size:11px;color:var(--tx2)">No. '+e.noEmp+' · '+e.planta+' · '+e.turno+'</div></div>'
+      +'<span style="font-size:11px;color:var(--blue);font-weight:600">Ver expediente →</span>';
+    d.addEventListener('mouseover',function(){this.style.borderColor='var(--blue)';});
+    d.addEventListener('mouseout',function(){this.style.borderColor='var(--bor)';});
+    (function(ne){d.addEventListener('click',function(){abrirExpediente(ne);});})(e.noEmp);
+    res.appendChild(d);
+  });
+}
+
+function abrirExpediente(noEmp){
+  var lc = String(noEmp||'').toLowerCase();
+  // Find employee data
+  var emp = HC.find(function(e){return String(e.noEmp||'').toLowerCase()===lc;});
+  if(!emp){
+    var r = registros.find(function(r){return String(r.noEmp||'').toLowerCase()===lc;});
+    if(r) emp={noEmp:r.noEmp,nombre:r.nombre,planta:r.planta,turno:r.turno,depto:r.depto,puesto:r.puesto};
+  }
+  if(!emp){
+    var v = valMedicas.find(function(v){return String(v.noEmp||'').toLowerCase()===lc;});
+    if(v) emp={noEmp:v.noEmp,nombre:v.nombre,planta:v.planta,turno:v.turno,depto:v.depto||'—',puesto:v.puesto||'—'};
+  }
+  if(!emp) emp={noEmp:noEmp,nombre:'—',planta:'—',turno:'—',depto:'—',puesto:'—'};
+  _expEmp = emp;
+  // Render employee card
+  var card = document.getElementById('exp-emp-card');
+  card.innerHTML = '<div class="ecn">'+emp.nombre+' <span class="ect">'+emp.noEmp+'</span></div>'
+    +'<div class="ecg" style="margin-top:8px">'
+    +'<div><div class="ecf">Planta</div><div class="ecv">'+(emp.planta||'—')+'</div></div>'
+    +'<div><div class="ecf">Turno</div><div class="ecv">'+(emp.turno||'—')+'</div></div>'
+    +'<div><div class="ecf">Depto</div><div class="ecv">'+(emp.depto||'—')+'</div></div>'
+    +'<div><div class="ecf">Puesto</div><div class="ecv">'+(emp.puesto||'—')+'</div></div></div>';
+  document.getElementById('exp-contenido').style.display='block';
+  document.getElementById('exp-resultados').innerHTML='';
+  document.getElementById('exp-q').value=emp.nombre;
+  expTab('resumen', document.querySelector('#exp-tabs .mpill'));
+}
+
+function expTab(tab, el){
+  _expTab = tab;
+  document.querySelectorAll('#exp-tabs .mpill').forEach(function(b){b.classList.remove('active');});
+  if(el) el.classList.add('active');
+  renderExpTab();
+}
+
+function renderExpTab(){
+  if(!_expEmp) return;
+  var noEmp = String(_expEmp.noEmp||'').toLowerCase();
+  var cont = document.getElementById('exp-tab-content');
+  var enfs = registros.filter(function(r){return String(r.noEmp||'').toLowerCase()===noEmp;}).sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  var vms  = valMedicas.filter(function(r){return String(r.noEmp||'').toLowerCase()===noEmp;}).sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  var nuts = NUT.filter(function(r){return String(r.noEmp||'').toLowerCase()===noEmp;}).sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+
+  if(_expTab==='enf'){
+    if(!enfs.length){cont.innerHTML='<div style="text-align:center;color:var(--tx2);padding:24px">Sin registros de enfermería</div>';return;}
+    cont.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px">'+enfs.length+' consultas de enfermería</div>'
+      +enfs.map(function(r){var s=SIS[r.sistema]||SIS.otro;
+        return '<div style="border:1px solid var(--bor);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--surf)">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+          +'<div><span style="font-weight:700;font-size:13px">'+r.diagnostico+'</span>'
+          +'<span style="background:'+s.bg+';color:'+s.c+';padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-left:6px">'+s.n+'</span></div>'
+          +'<span style="font-size:11px;color:var(--tx2)">'+r.fecha+(r.hora?' '+r.hora:'')+'</span></div>'
+          +(r.tratamiento?'<div style="font-size:11px;color:var(--tx2);margin-top:4px">Tto: '+r.tratamiento+'</div>':'')
+          +(r.seguimiento?'<div style="font-size:10px;color:var(--tx2)">Seg: '+r.seguimiento+'</div>':'')
+          +'</div>';}).join('');
+  } else if(_expTab==='vm'){
+    if(!vms.length){cont.innerHTML='<div style="text-align:center;color:var(--tx2);padding:24px">Sin valoraciones médicas</div>';return;}
+    cont.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px">'+vms.length+' valoraciones médicas</div>'
+      +vms.map(function(r){
+        return '<div style="border:1px solid var(--bor);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--surf)">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+          +'<div style="font-weight:700;font-size:13px">'+r.diagnostico+'</div>'
+          +'<span style="font-size:11px;color:var(--tx2)">'+r.fecha+'</span></div>'
+          +(r.dx2?'<div style="font-size:11px;color:var(--tx2)">Dx secundario: '+r.dx2+'</div>':'')
+          +(r.plan?'<div style="font-size:11px;color:var(--tx2);margin-top:4px">Plan: '+r.plan+'</div>':'')
+          +(r.ta||r.fc?'<div style="font-size:10px;color:var(--tx2);margin-top:4px">'+(r.ta?'T/A: '+r.ta+' ':''+(r.fc?'FC: '+r.fc+' ':'')+(r.peso?'Peso: '+r.peso+'kg':''))+'</div>':'')
+          +'<button class="btn bo sm" onclick="expVerVM(this)" data-folio="'+r.folio+'" style="font-size:11px;padding:3px 10px;margin-top:6px">📄 Ver detalle</button>'
+          +'</div>';}).join('');
+  } else if(_expTab==='nut'){
+    if(!nuts.length){cont.innerHTML='<div style="text-align:center;color:var(--tx2);padding:24px">Sin notas de nutriología</div>';return;}
+    cont.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px">'+nuts.length+' notas nutricionales</div>'
+      +nuts.map(function(r){
+        return '<div style="border:1px solid var(--bor);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--surf)">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+          +'<div style="font-weight:700;font-size:13px">'+r.diagnostico+'</div>'
+          +'<span style="font-size:11px;color:var(--tx2)">'+r.fecha+'</span></div>'
+          +(r.peso?'<div style="font-size:11px;color:var(--tx2)">Peso: '+r.peso+'kg'+(r.metaPeso?' → Meta: '+r.metaPeso+'kg':'')+'</div>':'')
+          +(r.recomendaciones?'<div style="font-size:11px;color:var(--tx2);margin-top:4px">Rec: '+r.recomendaciones+'</div>':'')
+          +'</div>';}).join('');
+  } else if(_expTab==='resumen'){
+    // Enfermedades crónicas y alergias
+    var cronicosArr=[],alArr=[];
+    vms.forEach(function(r){
+      [r.dx2,r.antecedentesPersonales,r.antPatologicos].forEach(function(c){
+        if(c&&c.trim()) c.split(/[,;\n]+/).forEach(function(x){x=x.trim();if(x&&cronicosArr.indexOf(x)<0)cronicosArr.push(x);});
+      });
+      if(r.alergias) r.alergias.split(/[,;]+/).forEach(function(a){a=a.trim();if(a&&alArr.indexOf(a)<0)alArr.push(a);});
+    });
+    enfs.forEach(function(r){if(r.alergias) r.alergias.split(/[,;]+/).forEach(function(a){a=a.trim();if(a&&alArr.indexOf(a)<0)alArr.push(a);});});
+    var html='';
+    if(alArr.length){
+      html+='<div style="background:#FFEBEE;border:2px solid #EF9A9A;border-radius:9px;padding:10px 14px;margin-bottom:10px">'
+        +'<div style="font-size:11px;font-weight:700;color:#B71C1C;margin-bottom:6px">⚠️ ALERGIAS</div>';
+      alArr.forEach(function(a){html+='<span style="background:#B71C1C;color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;margin:2px 4px 2px 0;display:inline-block">'+a+'</span>';});
+      html+='</div>';
+    }
+    if(cronicosArr.length){
+      html+='<div style="background:#FFF3E0;border:2px solid #FFB300;border-radius:9px;padding:10px 14px;margin-bottom:10px">'
+        +'<div style="font-size:11px;font-weight:700;color:#E65100;margin-bottom:6px">📋 ENFERMEDADES CRÓNICAS</div>';
+      cronicosArr.forEach(function(c){html+='<span style="background:#E65100;color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;margin:2px 4px 2px 0;display:inline-block">'+c+'</span>';});
+      html+='</div>';
+    }
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:10px">'
+      +'<div style="background:var(--surf2);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--blue)">'+enfs.length+'</div><div style="font-size:10px;color:var(--tx2)">Consultas enf.</div></div>'
+      +'<div style="background:var(--surf2);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--green)">'+vms.length+'</div><div style="font-size:10px;color:var(--tx2)">Val. médicas</div></div>'
+      +'<div style="background:var(--surf2);border-radius:8px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--pur)">'+nuts.length+'</div><div style="font-size:10px;color:var(--tx2)">Notas nutric.</div></div>'
+      +'</div>';
+    // Last 3 of each
+    if(enfs.length){
+      html+='<div style="font-size:12px;font-weight:700;color:var(--tx2);margin:10px 0 6px">Últimas consultas enfermería</div>';
+      enfs.slice(0,3).forEach(function(r){var s=SIS[r.sistema]||SIS.otro;
+        html+='<div style="border-left:3px solid '+s.c+';padding:6px 10px;margin-bottom:6px;background:var(--surf2);border-radius:0 6px 6px 0">'
+          +'<span style="font-size:11px;color:var(--tx2)">'+r.fecha+'</span> '
+          +'<span style="font-weight:600;font-size:12px">'+r.diagnostico+'</span></div>';
+      });
+    }
+    if(vms.length){
+      html+='<div style="font-size:12px;font-weight:700;color:var(--tx2);margin:10px 0 6px">Últimas valoraciones médicas</div>';
+      vms.slice(0,3).forEach(function(r){
+        html+='<div style="border-left:3px solid var(--green);padding:6px 10px;margin-bottom:6px;background:var(--surf2);border-radius:0 6px 6px 0">'
+          +'<span style="font-size:11px;color:var(--tx2)">'+r.fecha+'</span> '
+          +'<span style="font-weight:600;font-size:12px">'+r.diagnostico+'</span>'
+          +(r.dx2?'<span style="font-size:10px;color:var(--tx2);margin-left:6px">+'+r.dx2+'</span>':'')+'</div>';
+      });
+    }
+    if(!html) html='<div style="text-align:center;color:var(--tx2);padding:24px">Sin registros para este empleado</div>';
+    cont.innerHTML=html;
+  }
+}
+
 
 // ── Manejador global para errores no fatales ──────────────────────
 window.addEventListener('error', function(e){
@@ -3732,19 +3967,27 @@ async function guardarVM(){
 }
 
 // ── nuevaVM (v9) ──
+
+function syncVM(){ if(typeof syncValMed==='function') syncValMed(); else renderVMLista(); }
 function nuevaVM(){
   vmAct=null;
   ['vm-ne','vm-nom','vm-pl','vm-tu','vm-dep','vm-pu','vm-nss','vm-ta','vm-fc','vm-fr','vm-temp','vm-peso','vm-tall','vm-spo2','vm-gluc','vm-mot','vm-dx','vm-cie','vm-dx2','vm-plan','vm-prx','vm-dias','vm-rei','vm-res','vm-obs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  document.getElementById('vm-imc').value='';
-  document.getElementById('vm-seg').value='Alta';
-  document.getElementById('vm-inc').value='No';
-  document.getElementById('vm-med').value=EMPRESA.med;
-  document.getElementById('vm-ced').value=EMPRESA.ced;
-  document.getElementById('vm-ecard').style.display='none';
-  document.getElementById('vm-ant').style.display='none';
-  APARATOS.forEach(a=>{const k=a.replace(/\s+/g,'-');document.getElementById('ap-'+k).value='Normal';document.getElementById('apn-'+k).value='';});
+  var _sv=function(id,v){var e=document.getElementById(id);if(e)e.value=v||'';};
+  _sv('vm-imc','');
+  _sv('vm-seg','Alta'); _sv('vm-incap','No');
+  _sv('vm-inc','No');
+  _sv('vm-med',EMPRESA&&EMPRESA.med?EMPRESA.med:'');
+  _sv('vm-ced',EMPRESA&&EMPRESA.ced?EMPRESA.ced:'');
+  _sv('vm-medico',EMPRESA&&EMPRESA.med?EMPRESA.med:'');
+  _sv('vm-cedula',EMPRESA&&EMPRESA.ced?EMPRESA.ced:'');
+  var _ec=document.getElementById('vm-ecard'); if(_ec) _ec.style.display='none';
+  var _an=document.getElementById('vm-ant'); if(_an) _an.style.display='none';
+  APARATOS.forEach(a=>{const k=a.replace(/\s+/g,'-');
+    const ae=document.getElementById('ap-'+k); if(ae) ae.value='Normal';
+    const ane=document.getElementById('apn-'+k); if(ane) ane.value='';
+  });
   const folio='VM-'+Date.now().toString().slice(-6);
-  document.getElementById('vm-folio').textContent=folio;
+  const fl=document.getElementById('vm-folio'); if(fl) fl.textContent=folio;
   openModal('ov-vm');
 }
 
@@ -3786,11 +4029,13 @@ function mostrarAntVM(noEmp){
   ant.innerHTML=html;ant.style.display='block';
 }
 
-// ── mostrarHist (v9) ──
+// ── mostrarHist — enfermedades crónicas + alergias + historial ──
 function mostrarHist(noEmp){
   const panel=document.getElementById('hist-panel');
   const lc=String(noEmp||'').trim().toLowerCase();
   const hist=RE.filter(r=>String(r.noEmp||'').trim().toLowerCase()===lc);
+  // Enfermedades crónicas desde valoraciones médicas
+  const vms=(valMedicas||VM||[]).filter(r=>String(r.noEmp||'').trim().toLowerCase()===lc);
   const hoy=new Date();hoy.setHours(23,59,59,999);
   const h30=new Date();h30.setDate(h30.getDate()-30);h30.setHours(0,0,0,0);
   const u30=hist.filter(r=>{
@@ -3798,8 +4043,23 @@ function mostrarHist(noEmp){
   });
   const alArr=[];
   hist.forEach(r=>{if(r.alergias&&r.alergias.trim()){r.alergias.split(/[,;]+/).forEach(a=>{a=a.trim();if(a&&alArr.indexOf(a)<0)alArr.push(a);});}});
-  if(!hist.length&&!alArr.length){panel.style.display='none';return;}
+  // Alergias también desde valoraciones médicas
+  vms.forEach(r=>{if(r.alergias&&r.alergias.trim()){r.alergias.split(/[,;]+/).forEach(a=>{a=a.trim();if(a&&alArr.indexOf(a)<0)alArr.push(a);});}});
+  // Enfermedades crónicas: dx2 (antecedentes) de valoraciones médicas
+  const cronicosArr=[];
+  vms.forEach(r=>{
+    var campos=[r.dx2,r.antecedentesPersonales,r.antPatologicos,r.diagnostico2];
+    campos.forEach(c=>{if(c&&c.trim()){c.split(/[,;\n]+/).forEach(x=>{x=x.trim();if(x&&cronicosArr.indexOf(x)<0)cronicosArr.push(x);});}});
+  });
+  if(!hist.length&&!alArr.length&&!cronicosArr.length&&!vms.length){panel.style.display='none';return;}
   let html='';
+  // Bloque enfermedades crónicas
+  if(cronicosArr.length){
+    html+='<div style="background:#FFF3E0;border:2px solid #FFB300;border-radius:9px;padding:10px 14px;margin-bottom:10px">'
+      +'<div style="font-size:11px;font-weight:700;color:#E65100;margin-bottom:6px">📋 ENFERMEDADES CRÓNICAS / ANTECEDENTES</div>';
+    cronicosArr.forEach(c=>{html+='<span style="background:#E65100;color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;margin:2px 4px 2px 0;display:inline-block">'+c+'</span>';});
+    html+='</div>';
+  }
   if(alArr.length){
     html+='<div style="background:#FFEBEE;border:2px solid #EF9A9A;border-radius:9px;padding:10px 14px;margin-bottom:10px">'
       +'<div style="font-size:11px;font-weight:700;color:#B71C1C;margin-bottom:6px">⚠️ ALERGIAS MEDICAMENTOSAS REGISTRADAS</div>';
@@ -3957,11 +4217,13 @@ function abrirCita(){
   openModal('ov-cita');
 }
 
-// ── mostrarHist (v9) ──
+
 function mostrarHist(noEmp){
   const panel=document.getElementById('hist-panel');
   const lc=String(noEmp||'').trim().toLowerCase();
   const hist=RE.filter(r=>String(r.noEmp||'').trim().toLowerCase()===lc);
+  // Enfermedades crónicas desde valoraciones médicas
+  const vms=(valMedicas||VM||[]).filter(r=>String(r.noEmp||'').trim().toLowerCase()===lc);
   const hoy=new Date();hoy.setHours(23,59,59,999);
   const h30=new Date();h30.setDate(h30.getDate()-30);h30.setHours(0,0,0,0);
   const u30=hist.filter(r=>{
@@ -3969,8 +4231,23 @@ function mostrarHist(noEmp){
   });
   const alArr=[];
   hist.forEach(r=>{if(r.alergias&&r.alergias.trim()){r.alergias.split(/[,;]+/).forEach(a=>{a=a.trim();if(a&&alArr.indexOf(a)<0)alArr.push(a);});}});
-  if(!hist.length&&!alArr.length){panel.style.display='none';return;}
+  // Alergias también desde valoraciones médicas
+  vms.forEach(r=>{if(r.alergias&&r.alergias.trim()){r.alergias.split(/[,;]+/).forEach(a=>{a=a.trim();if(a&&alArr.indexOf(a)<0)alArr.push(a);});}});
+  // Enfermedades crónicas: dx2 (antecedentes) de valoraciones médicas
+  const cronicosArr=[];
+  vms.forEach(r=>{
+    var campos=[r.dx2,r.antecedentesPersonales,r.antPatologicos,r.diagnostico2];
+    campos.forEach(c=>{if(c&&c.trim()){c.split(/[,;\n]+/).forEach(x=>{x=x.trim();if(x&&cronicosArr.indexOf(x)<0)cronicosArr.push(x);});}});
+  });
+  if(!hist.length&&!alArr.length&&!cronicosArr.length&&!vms.length){panel.style.display='none';return;}
   let html='';
+  // Bloque enfermedades crónicas
+  if(cronicosArr.length){
+    html+='<div style="background:#FFF3E0;border:2px solid #FFB300;border-radius:9px;padding:10px 14px;margin-bottom:10px">'
+      +'<div style="font-size:11px;font-weight:700;color:#E65100;margin-bottom:6px">📋 ENFERMEDADES CRÓNICAS / ANTECEDENTES</div>';
+    cronicosArr.forEach(c=>{html+='<span style="background:#E65100;color:#fff;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;margin:2px 4px 2px 0;display:inline-block">'+c+'</span>';});
+    html+='</div>';
+  }
   if(alArr.length){
     html+='<div style="background:#FFEBEE;border:2px solid #EF9A9A;border-radius:9px;padding:10px 14px;margin-bottom:10px">'
       +'<div style="font-size:11px;font-weight:700;color:#B71C1C;margin-bottom:6px">⚠️ ALERGIAS MEDICAMENTOSAS REGISTRADAS</div>';
