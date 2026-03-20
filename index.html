@@ -585,6 +585,7 @@ tr:hover td{background:var(--surf2)}
     <div><h2>Head Count</h2><p id="hc-cnt">0 empleados</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" id="btn-del-hc" onclick="delHC()" style="display:none">🗑️ Limpiar</button>
+      <button class="btn btn-ghost btn-sm" onclick="syncHC()">🔄 Sync desde GAS</button>
       <label class="btn btn-teal btn-sm" style="cursor:pointer">📂 Importar Excel
         <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importarHC(this)">
       </label>
@@ -776,8 +777,9 @@ const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 // AUTH
 // ══════════════════════════════════════════════════════
 function initUsers(){
-  let u=ld(SK.users)||[];
-  if(!u.length){u=[{id:1,nombre:'Enfermería',user:'enf',pass:btoa('enfermeria123'),activo:true}];sv(SK.users,u);}
+  // Solo usar default si localStorage está completamente vacío
+  const u=ld(SK.users)||[];
+  if(!u.length) return [{id:0,nombre:'Enfermería',user:'enf',pass:btoa('enfermeria123'),app:'enfermeria',activo:true}];
   return u;
 }
 function poblarSelectUsuarios(){
@@ -787,14 +789,25 @@ function poblarSelectUsuarios(){
     +users.map(u=>`<option value="${u.user}">${u.nombre}${u.planta&&u.planta!=='Todas'?' · '+u.planta+(u.turno&&u.turno!=='Todos'?' '+u.turno:''):''}</option>`).join('');
 }
 
-function doLogin(){
+async function doLogin(){
   const u=(document.getElementById('lu').value||'').trim();
   const err=document.getElementById('lerr');
   err.style.display='none';
   if(!u){showErr('Selecciona tu usuario');return;}
-  const users=initUsers();
-  const found=users.find(x=>x.user===u&&x.activo!==false&&(x.app==='enfermeria'||x.app==='medico'));
-  if(!found){showErr('Usuario no encontrado');return;}
+  let users=initUsers();
+  let found=users.find(x=>x.user===u&&x.activo!==false&&(x.app==='enfermeria'||x.app==='medico'));
+  if(!found){
+    // Reintentar desde GAS por si el sync inicial falló
+    try{
+      const r=await gasGet({action:'getUsers'});
+      if(r.ok&&Array.isArray(r.data)&&r.data.length){
+        sv(SK.users,r.data);
+        poblarSelectUsuarios();
+        found=r.data.find(x=>x.user===u&&x.activo!==false&&(x.app==='enfermeria'||x.app==='medico'));
+      }
+    }catch(e){}
+  }
+  if(!found){showErr('Usuario no encontrado — verifica tu conexión');return;}
   currentUser=found; afterLogin(found);
 }
 function afterLogin(found){
@@ -1819,6 +1832,28 @@ function renderHC(q){
 }
 function delHC(){if(!confirm('¿Eliminar head count?'))return;HC=[];sv(SK.hc,HC);document.getElementById('hc-upload').style.display='block';document.getElementById('hc-table').style.display='none';const bd=document.getElementById('btn-del-hc');if(bd)bd.style.display='none';document.getElementById('hc-cnt').textContent='0 empleados';toast('HC eliminado','ok');}
 
+async function syncHC(){
+  setSyncDot('busy');
+  toast('Descargando Head Count...','inf');
+  try{
+    const r=await gasGet({action:'getHC'});
+    if(r.ok&&Array.isArray(r.data)&&r.data.length){
+      HC=r.data;
+      sv(SK.hc,HC);
+      document.getElementById('hc-upload').style.display='none';
+      document.getElementById('hc-table').style.display='block';
+      const bd=document.getElementById('btn-del-hc');if(bd)bd.style.display='';
+      renderHC('');
+      document.getElementById('hc-cnt').textContent=HC.length+' empleados';
+      setSyncDot('ok');
+      toast('✅ HC sincronizado — '+HC.length+' empleados','ok');
+    } else {
+      setSyncDot('err');
+      toast('Sin datos en el GAS. Importa el Excel primero.','err');
+    }
+  }catch(e){setSyncDot('err');toast('Error de conexión','err');}
+}
+
 // ══════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════
@@ -1829,15 +1864,16 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'
 function getWeek(d){const dt=new Date(d);dt.setHours(0,0,0,0);dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7);const w=new Date(dt.getFullYear(),0,4);return 1+Math.round(((dt-w)/86400000-3+(w.getDay()+6)%7)/7);}
 document.addEventListener('click',e=>{if(!e.target.closest('.sw'))document.querySelectorAll('.sr-drop').forEach(d=>d.classList.remove('show'));if(e.target.classList.contains('ov'))e.target.classList.remove('open');});
 document.addEventListener('DOMContentLoaded', async function(){
-  // Intentar sync de usuarios desde GAS para tener lista actualizada
+  // Cargar usuarios del GAS — reemplaza completamente el localStorage
   try{
     const r=await gasGet({action:'getUsers'});
     if(r.ok&&Array.isArray(r.data)&&r.data.length){
-      const local=initUsers();
-      const merged=[...local.filter(x=>!r.data.find(g=>g.user===x.user)),...r.data];
-      sv(SK.users,merged);
+      // Guardar directamente los usuarios del GAS (son la fuente de verdad)
+      sv(SK.users, r.data);
     }
-  }catch(e){}
+  }catch(e){
+    console.warn('No se pudo cargar usuarios del GAS, usando locales');
+  }
   poblarSelectUsuarios();
 });
 window.addEventListener('error',e=>{console.warn('[ENF]',e.message,e.lineno);});
