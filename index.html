@@ -1077,7 +1077,7 @@ function buscarEmp(val){
   const lc=val.toLowerCase();
   const matches=HC.filter(e=>String(e.noEmp||'').toLowerCase().includes(lc)||String(e.nombre||'').toLowerCase().includes(lc)).slice(0,6);
   if(matches.length){
-    drop.innerHTML=matches.map(e=>`<div class="sr-item" onclick="selEmp('${esc(e.noEmp)}')"><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.turno||'—'}</div></div>`).join('');
+    drop.innerHTML=matches.map(e=>`<div class="sr-item" onclick="selEmp('${esc(e.noEmp)}')"><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.puesto||'—'}</div></div>`).join('');
     drop.classList.add('show'); qa.style.display='none';
   } else {
     drop.classList.remove('show');
@@ -1696,7 +1696,7 @@ function buscarEmpExp(val){
   const lc=val.toLowerCase();
   const lista=HC.filter(e=>String(e.noEmp||'').toLowerCase().includes(lc)||String(e.nombre||'').toLowerCase().includes(lc)).slice(0,6);
   if(!lista.length){drop.classList.remove('show');return;}
-  drop.innerHTML=lista.map(e=>`<div class="sr-item" onclick="selEmpExp('${esc(e.noEmp)}')"><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.turno||'—'}</div></div>`).join('');
+  drop.innerHTML=lista.map(e=>`<div class="sr-item" onclick="selEmpExp('${esc(e.noEmp)}')"><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.puesto||'—'}</div></div>`).join('');
   drop.classList.add('show');
 }
 
@@ -1922,7 +1922,7 @@ function buscarEmpExp(val){
   const lc=val.toLowerCase();
   const lista=HC.filter(e=>String(e.noEmp||'').toLowerCase().includes(lc)||String(e.nombre||'').toLowerCase().includes(lc)).slice(0,6);
   if(!lista.length){drop.classList.remove('show');return;}
-  drop.innerHTML=lista.map(e=>`<div class="sr-item" onclick="selEmpExp('${esc(e.noEmp)}')"><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.turno||'—'}</div></div>`).join('');
+  drop.innerHTML=lista.map(e=>`<div class="sr-item" onclick="selEmpExp('${esc(e.noEmp)}')"><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.puesto||'—'}</div></div>`).join('');
   drop.classList.add('show');
 }
 
@@ -2156,7 +2156,7 @@ function buscarEmpInc(val){
   const lc=val.toLowerCase();
   const matches=HC.filter(e=>String(e.noEmp||'').toLowerCase().includes(lc)||String(e.nombre||'').toLowerCase().includes(lc)).slice(0,6);
   if(!matches.length){drop.classList.remove('show');return;}
-  drop.innerHTML=matches.map(e=>`<div class="sr-item" onclick="selEmpInc('${esc(e.noEmp)}')" ><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.turno||'—'}</div></div>`).join('');
+  drop.innerHTML=matches.map(e=>`<div class="sr-item" onclick="selEmpInc('${esc(e.noEmp)}')" ><div class="sr-name">${e.nombre}</div><div class="sr-meta">No.${e.noEmp} · ${e.planta||'—'} · ${e.puesto||'—'}</div></div>`).join('');
   drop.classList.add('show');
 }
 
@@ -2586,7 +2586,7 @@ function importarHC(input){
         depto:find(['depto','departamento','area','área']),puesto:find(['puesto','cargo']),
         planta:find(['planta','site']),turno:find(['turno','shift']),
         nss:find(['nss','seguro']),genero:find(['genero','género','sexo'])};
-      HC=rows.map(r=>({noEmp:String(r[m.noEmp]||'').trim(),nombre:String(r[m.nombre]||'').trim(),depto:String(r[m.depto]||'').trim(),puesto:String(r[m.puesto]||'').trim(),planta:String(r[m.planta]||'').trim(),turno:String(r[m.turno]||'').trim(),nss:String(r[m.nss]||'').trim(),genero:String(r[m.genero]||'').trim()})).filter(r=>r.noEmp&&r.nombre);
+      HC=rows.map(r=>({noEmp:String(r[m.noEmp]||'').trim(),nombre:String(r[m.nombre]||'').trim(),curp:String(r[m.curp]||'').trim(),supervisor:String(r[m.supervisor]||'').trim(),puesto:String(r[m.puesto]||'').trim(),planta:String(r[m.planta]||'').trim(),categoria:String(r[m.categoria]||'').trim()})).filter(r=>r.noEmp&&r.nombre);
       sv(SK.hc,HC);
       document.getElementById('hc-upload').style.display='none';
       document.getElementById('hc-table').style.display='block';
@@ -2600,10 +2600,16 @@ function importarHC(input){
 }
 function renderHC(q){
   q=(q||'').toLowerCase();
-  const lista=HC.filter(e=>!q||(e.nombre+e.noEmp+e.depto).toLowerCase().includes(q)).slice(0,100);
-  document.getElementById('hc-tbody').innerHTML=lista.map(e=>`<tr><td><span class="folio">${e.noEmp}</span></td><td><strong>${e.nombre}</strong></td><td>${e.depto||'—'}</td><td>${e.puesto||'—'}</td><td>${e.planta||'—'}</td><td>${e.turno||'—'}</td><td>${e.genero||'—'}</td><td>${e.nss||'—'}</td></tr>`).join('');
+  const lista=HC.filter(e=>!q||(e.nombre+e.noEmp+e.puesto+e.planta).toLowerCase().includes(q)).slice(0,150);
+  document.getElementById('hc-tbody').innerHTML=lista.map(e=>`<tr>
+    <td style="padding:8px 11px;border-bottom:1px solid var(--bor)"><span class="folio">${e.noEmp}</span></td>
+    <td style="padding:8px 11px;border-bottom:1px solid var(--bor)"><strong>${e.nombre}</strong></td>
+    <td style="padding:8px 11px;border-bottom:1px solid var(--bor)">${e.planta||'—'}</td>
+    <td style="padding:8px 11px;border-bottom:1px solid var(--bor)">${e.puesto||'—'}</td>
+  </tr>`).join('');
   document.getElementById('hc-cnt').textContent=HC.length+' empleados'+(q?' (filtrado)':'');
 }
+
 function delHC(){if(!confirm('¿Eliminar head count?'))return;HC=[];sv(SK.hc,HC);document.getElementById('hc-upload').style.display='block';document.getElementById('hc-table').style.display='none';const bd=document.getElementById('btn-del-hc');if(bd)bd.style.display='none';document.getElementById('hc-cnt').textContent='0 empleados';toast('HC eliminado','ok');}
 
 async function syncHC(){
