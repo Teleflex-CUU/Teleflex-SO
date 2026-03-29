@@ -852,21 +852,18 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--sf2);
 
 
 <div id="toast"></div>
-
-<!-- Botones flotantes de acción rápida -->
-<div id="fab-container" class="no-print" style="position:fixed;bottom:20px;right:20px;z-index:400;display:flex;flex-direction:column;gap:10px;align-items:flex-end">
-  <!-- Nueva consulta -->
+</div><!-- /app -->
+<!-- Botones flotantes — FUERA del #app para siempre visibles -->
+<div id="fab-container" class="no-print" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9000;flex-direction:column;gap:10px;align-items:flex-end">
   <div style="display:flex;align-items:center;gap:8px" id="fab-consulta">
-    <span style="background:rgba(15,41,66,.85);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;white-space:nowrap;backdrop-filter:blur(4px)">Nueva consulta</span>
-    <button onclick="go('captura')" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0F2942,#0D6B5E);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">📝</button>
+    <span id="fab-consulta-label" style="background:rgba(15,41,66,.92);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)">📝 Nueva consulta</span>
+    <button onclick="go('captura')" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0F2942,#0D6B5E);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);transition:.2s;display:flex;align-items:center;justify-content:center" onmouseover="this.parentElement.querySelector('span').style.display='inline'" onmouseout="this.parentElement.querySelector('span').style.display='inline'">📝</button>
   </div>
-  <!-- Nueva incapacidad -->
   <div style="display:flex;align-items:center;gap:8px" id="fab-inc">
-    <span style="background:rgba(220,38,38,.85);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;white-space:nowrap;backdrop-filter:blur(4px)">Nueva incapacidad</span>
-    <button onclick="openModal('mo-inc')" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#DC2626,#B91C1C);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.4);transition:.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">📋</button>
+    <span style="background:rgba(185,28,28,.92);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)">📋 Nueva incapacidad</span>
+    <button onclick="openModal('mo-inc')" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#DC2626,#B91C1C);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(220,38,38,.45);transition:.2s;display:flex;align-items:center;justify-content:center">📋</button>
   </div>
 </div>
-</div><!-- /app -->
 <script>
 'use strict';
 // ════════════════════════════════════════════════════════════════
