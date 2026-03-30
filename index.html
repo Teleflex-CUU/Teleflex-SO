@@ -2710,5 +2710,24 @@ if(localStorage.getItem('so_dark')==='1') document.documentElement.classList.add
     needle.style.left = porcentaje + '%';
   }
 }
+  <script>
+function calcularIMC(){
+  const peso = parseFloat(document.getElementById('f-peso')?.value);
+  const talla = parseFloat(document.getElementById('f-talla')?.value);
+  const imcInput = document.getElementById('f-imc');
+
+  if(!peso || !talla || talla === 0){
+    if(imcInput) imcInput.value = '';
+    return;
+  }
+
+  const imc = peso / (talla * talla);
+
+  if(imcInput){
+    imcInput.value = imc.toFixed(2);
+  }
+}
+</script>
+  
 </script>
 </body></html>
