@@ -6,8 +6,9 @@
 <title>AUNA Salud Ocupacional — Teleflex</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
-// ════════════════════════════════════════════════════════════════
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  // ════════════════════════════════════════════════════════════════
 // FORMULARIOS DE CAPTURA
 // ════════════════════════════════════════════════════════════════
 
@@ -45,7 +46,7 @@ function buildCapFormEnf(emp){
   <div class="fi" style="position:relative">
     <label>Diagnóstico <span style="font-weight:400;font-size:10px;color:var(--tx3)">— escribe o busca CIE-10</span></label>
     <input type="text" id="f-dg" placeholder="Ej: cefalea, dolor muscular, resfriado..." oninput="autoCIE(this)" autocomplete="off">
-    <div id="f-cie-drop" class="cie-drop" style="display:none;position:absolute;z-index:200;background:var(--bg);border:1.5px solid var(--tl);border-radius:8px;max-height:220px;overflow-y:auto;width:100%;left:0;top:100%;box-shadow:0 8px 24px rgba(0,0,0,.15)"></div>
+    <div id="f-cie-drop" class="cie-drop" style="display:none;position:absolute;z-index:200;background:var(--sf);border:1.5px solid var(--tl);border-radius:8px;max-height:220px;overflow-y:auto;width:100%;left:0;top:100%;box-shadow:0 8px 24px rgba(0,0,0,.15)"></div>
     <input type="hidden" id="f-cie">
     <span id="f-cie-badge" style="display:none;background:#CCFBF1;color:#0D9488;font-family:monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:4px;display:none"></span>
   </div>
@@ -94,7 +95,7 @@ function buildCapFormMed(emp){
   <div class="fi" style="position:relative">
     <label>Diagnóstico <span style="font-weight:400;font-size:10px;color:var(--tx3)">— escribe libremente, el CIE-10 se sugiere solo</span></label>
     <input type="text" id="f-dg" placeholder="Ej: cefalea, hipertensión, lumbalgia, resfriado..." oninput="autoCIE(this)" autocomplete="off">
-    <div id="f-cie-drop" class="cie-drop" style="display:none;position:absolute;z-index:200;background:var(--bg);border:1.5px solid var(--tl);border-radius:8px;max-height:220px;overflow-y:auto;width:100%;left:0;top:100%;box-shadow:0 8px 24px rgba(0,0,0,.15)"></div>
+    <div id="f-cie-drop" class="cie-drop" style="display:none;position:absolute;z-index:200;background:var(--sf);border:1.5px solid var(--tl);border-radius:8px;max-height:220px;overflow-y:auto;width:100%;left:0;top:100%;box-shadow:0 8px 24px rgba(0,0,0,.15)"></div>
     <input type="hidden" id="f-cie">
     <span id="f-cie-badge" style="display:none;background:#CCFBF1;color:#0D9488;font-family:monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:4px"></span>
   </div>
@@ -133,7 +134,7 @@ function calcIncFin(){
   const fin=document.getElementById('f-inc-fin');
   if(!ini||!dias||!fin||!ini.value||!dias.value) return;
   const d=new Date(ini.value+'T12:00');
-  d.setDate(d.getDate()+parseInt(dias.value));
+d.setDate(d.getDate()+parseInt(dias.value)-1);
   fin.value=d.toISOString().split('T')[0];
 }
 
@@ -290,10 +291,12 @@ function imprimirConstancia(){
 }
 
 function imprimirConstanciaFolio(folio){
-  const r=CONS.find(c=>c.folio===folio);
-  if(!r){toast('Consulta no encontrada','err');return;}
-  _consultaActual=r;
-  imprimirConstancia();
+  const r = CONS.find(c => c.folio === folio);
+  if(!r){
+    toast('Consulta no encontrada','err');
+    return;
+  }
+  abrirVentanaImpresion('Constancia', getNota(r));
 }
 
 function imprimirConstanciaInc(folio){
@@ -368,9 +371,38 @@ function imprimirST7(){
 }
 
 function imprimirST7Folio(folio){
-  const r=CONS.find(c=>c.folio===folio);
-  if(!r){toast('Consulta no encontrada','err');return;}
-  _consultaActual=r;imprimirST7();
+  const r = CONS.find(c => c.folio === folio);
+  if(!r){
+    toast('Consulta no encontrada','err');
+    return;
+  }
+
+  const contenido = `${getLogoHeader()}
+  <div style="font-size:15px;font-weight:800;color:#0F2942;margin-bottom:4px">AVISO DE ATENCIÓN MÉDICA INICIAL Y CALIFICACIÓN DE PROBABLE ACCIDENTE DE TRABAJO</div>
+  <div style="font-size:11px;color:#64748B;margin-bottom:12px">Formato ST-7 — NOM-021-STPS</div>
+  <div class="pac">
+  <div class="g2">
+    <div class="f"><label>Nombre del trabajador</label><span>${r.nombre||'—'}</span></div>
+    <div class="f"><label>No. Empleado</label><span>${r.noEmp||'—'}</span></div>
+    <div class="f"><label>NSS</label><span>${r.nss||'—'}</span></div>
+    <div class="f"><label>Puesto</label><span>${r.puesto||'—'}</span></div>
+    <div class="f"><label>Departamento</label><span>${r.depto||'—'}</span></div>
+    <div class="f"><label>Fecha del accidente</label><span>${r.fecha||'—'}</span></div>
+    <div class="f"><label>Hora</label><span>${r.hora||'—'}</span></div>
+    <div class="f"><label>Planta</label><span>${r.planta||'—'}</span></div>
+  </div></div>
+  <div class="sec"><div class="sec-t">Descripción del accidente / lesión</div>
+  <div style="min-height:80px;border:1px solid #E2E8F0;border-radius:6px;padding:10px;line-height:1.7">${r.motivoConsulta||'—'}</div></div>
+  <div class="sec"><div class="sec-t">Diagnóstico</div>
+  <p><strong>${r.diagnostico||'—'}</strong></p></div>
+  <div class="sec"><div class="sec-t">Tratamiento</div>
+  <p>${r.plan||'—'}</p></div>
+  <div class="sig-area">
+    <div class="sig-box"><div class="sig-line">Médico tratante<br>Dr. Jaime Iván Martínez Espinoza<br><small>Cédula 12021447</small></div></div>
+    <div class="sig-box"><div class="sig-line">Firma del trabajador<br>${r.nombre||'—'}</div></div>
+  </div>`;
+
+  abrirVentanaImpresion('ST-7', contenido);
 }
 
 function imprimirPlanNutFolio(folio){
@@ -1838,33 +1870,31 @@ function buscarCIE10Input(inp,dropId,hiddenId,diagId){
   }
 }
 
-function selCIE10(code,desc,dropId,hiddenId,diagId){
-  // Set the unified diagnosis field to description
-  const diagEl=document.getElementById(diagId);
-  if(diagEl) diagEl.value=desc;
-  // Store CIE code in hidden field
-  const hid=document.getElementById(hiddenId);
-  if(hid) hid.value=code;
-  // Show badge with CIE code
-  const badge=document.getElementById('f-cie-badge');
-  if(badge){badge.textContent=code;badge.style.display='inline-block';}
-  // Close dropdown
-  const drop=document.getElementById(dropId);
-  if(drop){drop.style.display='none';}
-}
-
-
-function selCIE10(code,desc,sis,dropId,hiddenId,diagId,inputId){
-  const drop=document.getElementById(dropId);if(drop){drop.style.display='none';drop.innerHTML='';}
-  const hid=document.getElementById(hiddenId);if(hid)hid.value=code;
-  const inp=document.getElementById(inputId);
-  if(inp){
-    inp.value=code+' — '+desc;
-    inp.dataset.selDesc=desc;
+function selCIE10(code, desc, dropId, hiddenId, diagId, inputId){
+  const drop = document.getElementById(dropId);
+  if(drop){
+    drop.style.display = 'none';
+    drop.innerHTML = '';
   }
-  const diag=document.getElementById(diagId);
-  if(diag && (!diag.value || diag.value===diag.placeholder.replace('Ej. ','') || diag.value===(inp?.dataset.selDesc||''))) diag.value=desc;
+
+  const hidden = document.getElementById(hiddenId);
+  if(hidden) hidden.value = code;
+
+  const input = document.getElementById(inputId);
+  if(input) input.value = code + ' — ' + desc;
+
+  const diag = document.getElementById(diagId);
+  if(diag && !diag.value.trim()){
+    diag.value = desc;
+  }
+
+  const badge = document.getElementById('f-cie-badge');
+  if(badge){
+    badge.style.display = 'inline-block';
+    badge.textContent = code;
+  }
 }
+
 const CIE10=[
   {c:'M54.5',d:'Lumbago no especificado',s:'Musculoesquelético'},{c:'M54.4',d:'Lumbociatalgia',s:'Musculoesquelético'},{c:'M54.2',d:'Cervicalgia',s:'Musculoesquelético'},{c:'M77.1',d:'Epicondilitis lateral',s:'Musculoesquelético'},{c:'M75.1',d:'Síndrome del manguito rotador',s:'Musculoesquelético'},{c:'M79.1',d:'Mialgia',s:'Musculoesquelético'},{c:'M25.5',d:'Dolor en articulación',s:'Musculoesquelético'},{c:'G54.2',d:'Síndrome del túnel carpiano',s:'Musculoesquelético'},{c:'M70.0',d:'Tenosinovitis De Quervain',s:'Musculoesquelético'},{c:'M62.8',d:'Espasmo muscular',s:'Musculoesquelético'},{c:'M72.2',d:'Fascitis plantar',s:'Musculoesquelético'},{c:'M17.1',d:'Gonartrosis primaria',s:'Musculoesquelético'},{c:'M47.8',d:'Espondiloartrosis',s:'Musculoesquelético'},
   {c:'S93.4',d:'Esguince del tobillo',s:'Traumatología'},{c:'S40.0',d:'Contusión del hombro',s:'Traumatología'},{c:'S60.0',d:'Contusión del dedo de la mano',s:'Traumatología'},{c:'S80.0',d:'Contusión de la rodilla',s:'Traumatología'},{c:'T14.0',d:'Herida región no especificada',s:'Traumatología'},{c:'W01',d:'Caída por resbalón o tropezón',s:'Traumatología'},{c:'X50',d:'Sobreesfuerzo y movimientos extenuantes',s:'Traumatología'},{c:'S61.0',d:'Herida del dedo de la mano',s:'Traumatología'},{c:'T30.1',d:'Quemadura de primer grado',s:'Traumatología'},{c:'T30.2',d:'Quemadura de segundo grado',s:'Traumatología'},
@@ -2433,27 +2463,40 @@ function initSimpleSearches(){
 // ── INICIO ────────────────────────────────────────────────────────
 
 // ── CIE-10 AUTOSUGGEST ────────────────────────────────────────────
-function autoCIE(inp){
-  const val=(inp.value||'').trim();
-  const drop=document.getElementById('f-cie-drop');
-  const hid=document.getElementById('f-cie');
-  const badge=document.getElementById('f-cie-badge');
-  if(hid) hid.value='';
-  if(badge) badge.style.display='none';
-  if(!drop) return;
-  if(!val||val.length<2){drop.style.display='none';return;}
-  const q=val.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-  const src=typeof CIE10!=='undefined'?CIE10:[];
-  const results=src.filter(e=>{
-    const c=(e.c||'').toLowerCase();
-    const d=(e.d||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    return c.startsWith(q)||d.includes(q);
-  }).slice(0,10);
-  if(!results.length){drop.style.display='none';return;}
-  drop.style.display='block';
-  drop.innerHTML=results.map(e=>`<div onclick="pickCIE('${e.c}','${e.d.replace(/'/g,"\\'")}');event.stopPropagation()" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--bor);font-size:12px" onmouseover="this.style.background='var(--sf3)'" onmouseout="this.style.background=''">
-    <span style="font-family:monospace;font-weight:700;color:#0D6B5E;margin-right:8px">${e.c}</span>${e.d}
-  </div>`).join('');
+function autoCIE(input){
+  const drop = document.getElementById('f-cie-drop');
+  const hidden = document.getElementById('f-cie');
+
+  if(!drop || !hidden) return;
+
+  const val = input.value.toLowerCase().trim();
+  hidden.value = '';
+
+  if(!val){
+    drop.style.display = 'none';
+    drop.innerHTML = '';
+    return;
+  }
+
+  const res = (CIE10 || []).filter(x =>
+    x.c.toLowerCase().includes(val) ||
+    x.d.toLowerCase().includes(val)
+  ).slice(0,15);
+
+  if(!res.length){
+    drop.innerHTML = '<div class="cie10-item">Sin resultados</div>';
+    drop.style.display = 'block';
+    return;
+  }
+
+  drop.innerHTML = res.map(r => `
+    <div class="cie10-item"
+      onclick="selCIE10('${r.c}','${r.d}','f-cie-drop','f-cie','f-dg','f-dg')">
+      <b>${r.c}</b> — ${r.d}
+    </div>
+  `).join('');
+
+  drop.style.display = 'block';
 }
 
 function pickCIE(code,desc){
